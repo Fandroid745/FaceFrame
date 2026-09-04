@@ -2,6 +2,7 @@ package com.example.collage.domain
 
 import android.graphics.Bitmap
 import android.graphics.Rect
+import com.example.collage.domain.model.FaceAnalysisResult
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
@@ -12,7 +13,7 @@ import kotlin.math.sqrt
 
 private const val FACE_PADDING_FACTOR = 0.4f
 
-class FaceAnalyzer {
+class FaceAnalyzer(private val faceEmbedder: FaceEmbedder) {
 
     private val detector = FaceDetection.getClient(
         FaceDetectorOptions.Builder()
@@ -29,6 +30,7 @@ class FaceAnalyzer {
         return faces.map { face ->
             val faceCrop = cropFaceGenerously(bitmap, face.boundingBox)
             val sharpness = calculateSharpness(faceCrop)
+            val embedding = faceEmbedder.getEmbedding(faceCrop)
 
             FaceAnalysisResult(
                 boundingBox = face.boundingBox,
@@ -41,6 +43,7 @@ class FaceAnalyzer {
                 headEulerAngleY = face.headEulerAngleY,
                 headEulerAngleZ = face.headEulerAngleZ,
                 sharpnessScore = sharpness,
+                embedding = embedding
             )
         }
     }
@@ -86,16 +89,3 @@ class FaceAnalyzer {
         return 0.299 * r + 0.587 * g + 0.114 * b
     }
 }
-
-data class FaceAnalysisResult(
-    val boundingBox: Rect,
-    val faceCropBitmap: Bitmap,
-    val frameBitmap: Bitmap,
-    val smilingProbability: Float,
-    val leftEyeOpenProbability: Float,
-    val rightEyeOpenProbability: Float,
-    val headEulerAngleX: Float,
-    val headEulerAngleY: Float,
-    val headEulerAngleZ: Float,
-    val sharpnessScore: Float,
-)
