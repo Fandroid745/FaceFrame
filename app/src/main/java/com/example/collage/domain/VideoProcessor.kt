@@ -11,9 +11,13 @@ import kotlinx.coroutines.flow.flowOn
 
 private const val FRAME_INTERVAL_MS = 250L
 
-class VideoProcessor(private val context: Context) {
+class VideoProcessor(
+    private val context: Context,
+    private val faceAnalyzer: FaceAnalyzer,
+    private val faceClusteringService: FaceClusteringService
+) {
 
-    fun extractFrames(videoUri: Uri): Flow<ProcessingState> = flow {
+    fun processVideo(videoUri: Uri): Flow<ProcessingState> = flow {
         val retriever = MediaMetadataRetriever()
 
         try {
@@ -24,7 +28,7 @@ class VideoProcessor(private val context: Context) {
                 ?.toLongOrNull()
                 ?: error("Could not read video duration")
 
-            val frames = mutableListOf<Pair<Long, Bitmap>>()
+            val allDetectedFaces = mutableListOf<com.example.collage.domain.model.DetectedFace>()
             var currentTimeMs = 0L
 
             while (currentTimeMs < durationMs) {
@@ -34,16 +38,37 @@ class VideoProcessor(private val context: Context) {
                 )
 
                 if (bitmap != null) {
-                    frames.add(currentTimeMs to bitmap)
+                    val analysisResults = faceAnalyzer.analyze(bitmap)
+                    analysisResults.forEach { result ->
+                        allDetectedFaces.add(
+                            com.example.collage.domain.model.DetectedFace(
+                                frameTimeMs = currentTimeMs,
+                                boundingBox = android.graphics.RectF(result.boundingBox),
+                                embedding = result.embedding,
+                                frameBitmap = result.frameBitmap,
+                                smilingProbability = result.smilingProbability,
+                                leftEyeOpenProbability = result.leftEyeOpenProbability,
+                                rightEyeOpenProbability = result.rightEyeOpenProbability,
+                                headEulerAngleX = result.headEulerAngleX,
+                                headEulerAngleY = result.headEulerAngleY,
+                                headEulerAngleZ = result.headEulerAngleZ,
+                                sharpnessScore = result.sharpnessScore
+                            )
+                        )
+                    }
                 }
 
                 currentTimeMs += FRAME_INTERVAL_MS
 
                 val progress = (currentTimeMs.toFloat() / durationMs).coerceIn(0f, 1f)
-                emit(ProcessingState.ExtractingFrames(progress))
+                emit(ProcessingState.Processing(progress, "Analyzing frames..."))
             }
 
-            emit(ProcessingState.Done(frames))
+            emit(ProcessingState.Processing(1f, "Clustering appearances..."))
+            val result = faceClusteringService.clusterFaces(allDetectedFaces)
+            emit(ProcessingState.Done(result))
+        } catch (e: Exception) {
+            emit(ProcessingState.Error(e.message ?: "Unknown error"))
         } finally {
             retriever.release()
         }
@@ -51,7 +76,7 @@ class VideoProcessor(private val context: Context) {
 }
 
 sealed class ProcessingState {
-    data class ExtractingFrames(val progress: Float) : ProcessingState()
-    data class Done(val frames: List<Pair<Long, Bitmap>>) : ProcessingState()
+    data class Processing(val progress: Float, val message: String) : ProcessingState()
+    data class Done(val result: com.example.collage.domain.model.VideoResult) : ProcessingState()
     data class Error(val message: String) : ProcessingState()
 }
