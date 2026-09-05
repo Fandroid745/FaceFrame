@@ -2,20 +2,16 @@ package com.example.collage.domain
 
 import android.content.Context
 import android.graphics.Bitmap
-import org.tensorflow.lite.Interpreter
-import org.tensorflow.lite.support.common.ops.NormalizeOp
-import org.tensorflow.lite.support.image.ImageProcessor
-import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.image.ops.ResizeOp
+import android.graphics.Canvas
+import android.graphics.Paint
 import java.io.FileInputStream
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.channels.FileChannel
+import org.tensorflow.lite.Interpreter
 
-class FaceEmbedder(context: Context) {
+class FaceEmbedder(context: Context) : AutoCloseable {
     private val interpreter: Interpreter
-    private val imageProcessor = ImageProcessor.Builder()
-        .add(ResizeOp(112, 112, ResizeOp.ResizeMethod.BILINEAR))
-        .add(NormalizeOp(127.5f, 127.5f)) // Normalize to [-1, 1]
-        .build()
 
     init {
         val modelFile = context.assets.openFd("mobile_face_net.tflite")
@@ -28,15 +24,41 @@ class FaceEmbedder(context: Context) {
     }
 
     fun getEmbedding(faceBitmap: Bitmap): FloatArray {
-        val tensorImage = TensorImage.fromBitmap(faceBitmap)
-        val processedImage = imageProcessor.process(tensorImage)
-        val output = Array(1) { FloatArray(192) } // MobileFaceNet output is often 192 or 128
+        val resized = resizeBitmap(faceBitmap, 112, 112)
+        val inputBuffer = ByteBuffer.allocateDirect(4 * 112 * 112 * 3)
+        inputBuffer.order(ByteOrder.nativeOrder())
 
-        interpreter.run(processedImage.buffer, output)
-        return output[0]
+        for (y in 0 until 112) {
+            for (x in 0 until 112) {
+                val pixel = resized.getPixel(x, y)
+                // Normalize to [-1, 1] for MobileFaceNet
+                inputBuffer.putFloat((((pixel shr 16) and 0xFF) / 255f - 0.5f) / 0.5f)
+                inputBuffer.putFloat((((pixel shr 8) and 0xFF) / 255f - 0.5f) / 0.5f)
+                inputBuffer.putFloat(((pixel and 0xFF) / 255f - 0.5f) / 0.5f)
+            }
+        }
+        inputBuffer.rewind()
+
+        val outputBuffer = ByteBuffer.allocateDirect(192 * 4)
+        outputBuffer.order(ByteOrder.nativeOrder())
+        interpreter.run(inputBuffer, outputBuffer)
+
+        outputBuffer.rewind()
+        val floatBuffer = outputBuffer.asFloatBuffer()
+        val output = FloatArray(192)
+        floatBuffer.get(output)
+        return output
     }
 
-    fun close() {
+    private fun resizeBitmap(bitmap: Bitmap, targetWidth: Int, targetHeight: Int): Bitmap {
+        val result = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        val paint = Paint(Paint.FILTER_BITMAP_FLAG)
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
+        return result
+    }
+
+    override fun close() {
         interpreter.close()
     }
 }
