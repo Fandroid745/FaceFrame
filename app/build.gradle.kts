@@ -58,9 +58,12 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-    implementation(libs.mlkit.face.detection)
-    implementation(libs.tensorflow.lite)
-    implementation(libs.tensorflow.lite.support)
+    implementation(libs.mlkit.face.detection) {
+        exclude(group = "com.google.ai.edge.litert")
+    }
+    implementation("org.tensorflow:tensorflow-lite:2.16.1") {
+        exclude(group = "org.tensorflow:tensorflow-lite-dependency")
+    }
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.navigation.compose)
