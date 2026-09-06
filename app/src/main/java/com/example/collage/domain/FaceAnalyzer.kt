@@ -1,91 +1,78 @@
 package com.example.collage.domain
 
 import android.graphics.Bitmap
-import android.graphics.Rect
-import com.example.collage.domain.model.FaceAnalysisResult
+import com.example.collage.domain.model.FaceDetectionResult
+import com.example.collage.util.ImageUtils
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import kotlinx.coroutines.tasks.await
-import kotlin.math.abs
-import kotlin.math.sqrt
 
-private const val FACE_PADDING_FACTOR = 0.4f
-
+/**
+ * Ported from Snapshot: Wraps ML Kit's on-device face detector.
+ * Uses PERFORMANCE_MODE_FAST for responsive on-device processing.
+ */
 class FaceAnalyzer(private val faceEmbedder: FaceEmbedder) {
 
     private val detector = FaceDetection.getClient(
         FaceDetectorOptions.Builder()
-            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
-            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
             .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-            .build(),
+            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
+            .setMinFaceSize(0.10f)
+            .build()
     )
 
-    suspend fun analyze(bitmap: Bitmap): List<FaceAnalysisResult> {
+    suspend fun analyze(bitmap: Bitmap, timeMs: Long): List<FaceDetectionResult> {
         val image = InputImage.fromBitmap(bitmap, 0)
-        val faces = detector.process(image).await()
+        val detectedMlFaces = try {
+            detector.process(image).await()
+        } catch (e: Exception) {
+            emptyList()
+        }
 
-        return faces.map { face ->
-            val faceCrop = cropFaceGenerously(bitmap, face.boundingBox)
-            val sharpness = calculateSharpness(faceCrop)
-            val embedding = faceEmbedder.getEmbedding(faceCrop)
+        val frameFaceResults = mutableListOf<FaceDetectionResult>()
+        for (face in detectedMlFaces) {
+            val box = face.boundingBox
+            if (box.width() < 40 || box.height() < 40) continue
 
-            FaceAnalysisResult(
-                boundingBox = face.boundingBox,
-                faceCropBitmap = faceCrop,
-                frameBitmap = bitmap,
-                smilingProbability = face.smilingProbability ?: 0f,
-                leftEyeOpenProbability = face.leftEyeOpenProbability ?: 0f,
-                rightEyeOpenProbability = face.rightEyeOpenProbability ?: 0f,
-                headEulerAngleX = face.headEulerAngleX,
-                headEulerAngleY = face.headEulerAngleY,
-                headEulerAngleZ = face.headEulerAngleZ,
-                sharpnessScore = sharpness,
-                embedding = embedding
+            val crop = ImageUtils.cropFaceForEmbedding(bitmap, box)
+
+            // Calculate composite quality score (Frontality, Sharpness, Eyes, Smile)
+            val quality = QualityScorer.calculateQualityScore(
+                faceCrop = crop,
+                frameWidth = bitmap.width,
+                frameHeight = bitmap.height,
+                boundingBox = box,
+                eulerY = face.headEulerAngleY,
+                eulerZ = face.headEulerAngleZ,
+                eulerX = face.headEulerAngleX,
+                leftEyeOpenProb = face.leftEyeOpenProbability,
+                rightEyeOpenProb = face.rightEyeOpenProbability,
+                smileProb = face.smilingProbability
+            )
+
+            // Extract identity embedding vector
+            val embedding = faceEmbedder.extractEmbedding(crop)
+
+            frameFaceResults.add(
+                FaceDetectionResult(
+                    timestampMs = timeMs,
+                    boundingBox = box,
+                    headEulerAngleX = face.headEulerAngleX,
+                    headEulerAngleY = face.headEulerAngleY,
+                    headEulerAngleZ = face.headEulerAngleZ,
+                    leftEyeOpenProbability = face.leftEyeOpenProbability,
+                    rightEyeOpenProbability = face.rightEyeOpenProbability,
+                    smilingProbability = face.smilingProbability,
+                    qualityScore = quality,
+                    embedding = embedding,
+                    frameBitmap = bitmap
+                )
             )
         }
+        return frameFaceResults
     }
 
     fun close() = detector.close()
-
-    private fun cropFaceGenerously(bitmap: Bitmap, box: Rect): Bitmap {
-        val padding = (maxOf(box.width(), box.height()) * FACE_PADDING_FACTOR).toInt()
-        val left = (box.left - padding).coerceAtLeast(0)
-        val top = (box.top - padding).coerceAtLeast(0)
-        val right = (box.right + padding).coerceAtMost(bitmap.width)
-        val bottom = (box.bottom + padding).coerceAtMost(bitmap.height)
-        return Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
-    }
-
-    private fun calculateSharpness(bitmap: Bitmap): Float {
-        val width = bitmap.width
-        val height = bitmap.height
-        var sum = 0.0
-        var count = 0
-
-        for (y in 1 until height - 1) {
-            for (x in 1 until width - 1) {
-                val center = bitmap.getLuminance(x, y)
-                val left = bitmap.getLuminance(x - 1, y)
-                val right = bitmap.getLuminance(x + 1, y)
-                val top = bitmap.getLuminance(x, y - 1)
-                val bottom = bitmap.getLuminance(x, y + 1)
-                val laplacian = abs(4 * center - left - right - top - bottom)
-                sum += laplacian * laplacian
-                count++
-            }
-        }
-
-        return if (count == 0) 0f else sqrt(sum / count).toFloat()
-    }
-
-    private fun Bitmap.getLuminance(x: Int, y: Int): Double {
-        val pixel = getPixel(x, y)
-        val r = (pixel shr 16 and 0xFF) / 255.0
-        val g = (pixel shr 8 and 0xFF) / 255.0
-        val b = (pixel and 0xFF) / 255.0
-        return 0.299 * r + 0.587 * g + 0.114 * b
-    }
 }

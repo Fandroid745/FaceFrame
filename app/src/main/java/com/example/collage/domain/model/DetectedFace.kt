@@ -8,6 +8,7 @@ data class DetectedFace(
     val boundingBox: RectF,
     val embedding: FloatArray,
     val frameBitmap: Bitmap,
+    val faceCropBitmap: Bitmap,
     val smilingProbability: Float,
     val leftEyeOpenProbability: Float,
     val rightEyeOpenProbability: Float,
