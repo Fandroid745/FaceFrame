@@ -5,10 +5,7 @@ import com.example.collage.domain.model.PersonProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/**
- * Ported from Snapshot: Renders a professional 9:16 (1080x1920) collage.
- * Uses dynamic Instagram Story layouts for various person counts.
- */
+
 class CollageGenerator {
     companion object {
         const val CANVAS_WIDTH = 1080
@@ -146,7 +143,7 @@ class CollageGenerator {
 
         canvas.restore()
 
-        // Card border (Snapshot subtle white style)
+        // Card border (Subtle white style)
         val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor("#33FFFFFF")
             style = Paint.Style.STROKE

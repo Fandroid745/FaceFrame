@@ -9,7 +9,7 @@ import com.google.mlkit.vision.face.FaceDetectorOptions
 import kotlinx.coroutines.tasks.await
 
 /**
- * Ported from Snapshot: Wraps ML Kit's on-device face detector.
+ * Wraps ML Kit's on-device face detector.
  * Uses PERFORMANCE_MODE_FAST for responsive on-device processing.
  */
 class FaceAnalyzer(private val faceEmbedder: FaceEmbedder) {

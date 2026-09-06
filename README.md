@@ -1,38 +1,62 @@
-# Collage - On-Device Face Analysis & Grid Generator
+# FaceFrame
 
-An Android application that processes portrait videos on-device to identify unique individuals, track their appearances, and generate a high-quality, shareable collage.
+FaceFrame identifies unique people in videos and creates a shareable collage using on-device AI.
 
-## Implementation Details
 
-This project was built to satisfy the core evaluation criteria for the internship assignment: Identity Accuracy, Code Quality, and Usability.
+## Implementation
 
-### 1. Face Analysis Pipeline (Accuracy: 50% Grade)
+### 1. Analysis Pipeline
+The core processing engine consists of a multi-stage pipeline:
+*   **Detection**: Leverages Google ML Kit Face Detection in accurate mode to locate faces and stabilize tracking across frames.
+*   **Embedding**: Utilizes a FaceNet-based TensorFlow Lite model to generate 192-dimensional L2-normalized identity vectors for each detected face.
+*   **Clustering**: Implements a conflict-aware clustering algorithm that groups face tracklets into unique identities using Cosine Similarity with a chosen threshold of 0.62, while enforcing temporal constraints to prevent identity overlap.
 
-- **Stage 1: Detection**: Leverages **Google ML Kit Face Detection** in `ACCURATE` mode with `enableTracking()` active. This provides stable bounding boxes and persistent tracking IDs while a person is on screen.
-- **Stage 2: Embedding**: Uses a pre-trained **FaceNet** TFLite model. It produces 192-dimensional L2-normalized embeddings for every detected face.
-- **Stage 3: Clustering**: Implements a **Conflict-Aware Agglomerative Clustering** strategy:
-    - **Tracklet Formation**: Faces are grouped by their ML Kit `trackingId` into "Tracklets" (continuous appearances).
-    - **Co-occurrence Veto**: A conflict map is built; any two tracks seen at the same timestamp are forbidden from being merged.
-    - **Greedy Merge**: Tracklets are merged into unique Identities using **Cosine Similarity** with a calibrated threshold of **0.62**.
-    - **Appearance Counting**: Continuous segments are identified by grouping tracklets within an identity, allowing for up to a 350ms gap between detections.
+### 2. Quality-Based Shot Selection
+For each unique identity identified, the system automatically selects the highest-quality representative shot based on a weighted scoring mechanism:
+*   **Frontality (35%)**: Evaluates Euler angles to prioritize direct camera engagement.
+*   **Sharpness (30%)**: Measures Laplacian variance to ensure clarity and focus.
+*   **Engagement (20% Eyes, 15% Smile)**: Prioritizes frames where the subject's eyes are open and an optimistic expression is detected.
 
-### 2. Shot Selection & Quality (Usability: 20% Grade)
+### 3. Data Persistence and Management
+FaceFrame maintains a persistent history of all processed results using the Room Database.
+*   **Hybrid Storage**: Metadata (durations, counts, timestamps) is stored in SQLite, while high-resolution generated assets are managed via internal file storage to optimize database performance.
+*   **Dependency Injection**: Koin is used as the DI framework to manage component lifecycles and facilitate testability.
 
-- **Best Shot Logic**: For each unique person, a representative shot is chosen by scoring every frame:
-    - **Frontality (35%)**: Euler angle analysis to favor direct camera contact.
-    - **Sharpness (30%)**: Laplacian variance measurement to ensure clarity.
-    - **Eyes Open (20%)**: Leverages ML Kit classification to ensure people aren't blinking.
-    - **Smile (15%)**: Favors pleasant expressions.
-    - **Clipping Penalty**: Faces near the edge of the frame are heavily penalized to ensure full-face visibility.
+## Technology Stack
 
-### 3. Architecture & Performance (Code Quality: 30% Grade)
+*   **Language**: Kotlin (2.0.21)
+*   **UI Framework**: Jetpack Compose
+*   **Navigation**: Jetpack Navigation Compose
+*   **Machine Learning**: Google ML Kit, TensorFlow Lite
+*   **Database**: Room Persistence Library
+*   **Image Loading**: Coil
+*   **Dependency Injection**: Koin
 
-- **MVVM Pattern**: Clean separation between UI (Compose), ViewModel, and Domain services.
-- **Parallel Processing**: Video decoding and frame analysis happen off the main thread using Coroutines and Flows.
-- **Optimization**: Uses `getPixels()` for bulk memory operations and `getScaledFrameAtTime` (720p) for efficient on-device decoding.
+## Technical Architecture
 
-## Setup & Running
+The application is built on modern Android principles, utilizing a Clean Architecture approach paired with the MVVM (Model-View-ViewModel) pattern. This ensures a strict separation of concerns between the data persistence, business logic, and presentation layers.
 
-1.  **Add Model**: Place `facenet.tflite` in `app/src/main/assets/`.
-2.  **Build**: Run `./gradlew :app:assembleDebug`.
-3.  **Verify**: Test with Sample 1 to see exactly 5 people and 20 appearances.
+```text
+com.example.collage/
+├── data/
+│   ├── local/          Room database, DAOs, and entities
+│   └── VideoRepository.kt Video-processing orchestration
+├── di/                 Koin dependency-injection modules
+├── domain/
+│   ├── model/          Processing and analysis data models
+│   └── processor/      ML Kit detection, TFLite embeddings, tracking, grouping, collage rendering
+├── ui/
+│   ├── home/           Creation flow components
+│   ├── history/        History and detail components
+│   ├── components/     Shared UI components
+│   └── MainScreen.kt   App shell and navigation
+└── util/               Bitmap, similarity, gallery, and sharing helpers
+```
+
+The app uses MVVM. CollageViewModel exposes UI state through StateFlow, VideoRepository handles the data persistence layer, and Koin provides the database and processing dependencies.
+
+## Build and Deployment
+
+1.  **Machine Learning Model**: Ensure `facenet.tflite` is present in the `app/src/main/assets/` directory.
+2.  **Gradle Configuration**: Run `./gradlew :app:assembleDebug` to build the debug variant.
+3.  **Permissions**: The application requires read access to media storage to process video files.

@@ -4,11 +4,6 @@ import com.example.collage.domain.model.AppearanceSegment
 import com.example.collage.domain.model.FaceDetectionResult
 import com.example.collage.util.ImageUtils
 
-/**
- * Tracks face appearances chronologically across video frames.
- * Groups contiguous face detections into continuous appearance segments.
- * Ported from Snapshot: uses Global Best-First Assignment for multi-face robustness.
- */
 class AppearanceTracker {
 
     companion object {

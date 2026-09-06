@@ -16,8 +16,8 @@ import java.io.FileOutputStream
 object FileHelper {
 
     /**
-     * Saves the generated collage bitmap into the device's public Pictures/SnapshotCollages gallery folder.
-     * Uses PNG format per Snapshot implementation.
+     * Saves the generated collage bitmap into the device's public Pictures/FaceFrameCollages gallery folder.
+     * Uses PNG format.
      */
     fun saveToGallery(context: Context, bitmap: Bitmap) {
         val filename = "Collage_${System.currentTimeMillis()}.png"
@@ -27,7 +27,7 @@ object FileHelper {
                 val contentValues = android.content.ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
                     put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/SnapshotCollages")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/FaceFrameCollages")
                 }
                 val imageUri = context.contentResolver.insert(
                     android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -54,7 +54,7 @@ object FileHelper {
 
     /**
      * Creates an ACTION_SEND Intent with FileProvider content URI to trigger the standard Android Share Sheet.
-     * Uses PNG format per Snapshot implementation.
+     * Uses PNG format.
      */
     fun shareCollage(context: Context, bitmap: Bitmap) {
         try {
@@ -68,8 +68,8 @@ object FileHelper {
             val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                 type = "image/png"
                 putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                putExtra(android.content.Intent.EXTRA_SUBJECT, "Snapshot - Unique People Collage")
-                putExtra(android.content.Intent.EXTRA_TEXT, "Generated with Snapshot on-device AI!")
+                putExtra(android.content.Intent.EXTRA_SUBJECT, "FaceFrame - Unique People Collage")
+                putExtra(android.content.Intent.EXTRA_TEXT, "Generated with FaceFrame on-device AI!")
                 addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             context.startActivity(Intent.createChooser(intent, "Share Collage"))

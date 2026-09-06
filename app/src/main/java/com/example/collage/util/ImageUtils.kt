@@ -7,7 +7,7 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
- * Ported from Snapshot: Essential image processing utilities for face cropping and sharpness.
+ * Essential image processing utilities for face cropping and sharpness.
  */
 object ImageUtils {
 

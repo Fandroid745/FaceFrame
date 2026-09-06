@@ -8,7 +8,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Ported from Snapshot: Groups appearance segments into unique person profiles.
+ * Groups appearance segments into unique person profiles.
  * Enforces chronological grouping and co-occurrence veto.
  */
 class PersonGrouper {
