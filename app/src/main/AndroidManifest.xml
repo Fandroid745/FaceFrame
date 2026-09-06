@@ -2,7 +2,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".CollageApplication"
         android:allowBackup="true"
+        android:extractNativeLibs="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -11,6 +13,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Collage"
         tools:replace="android:allowBackup">
+
+        <property android:name="android.app.appfunctions.app_metadata"
+            android:resource="@xml/app_metadata" />
 
         <activity
             android:name=".MainActivity"

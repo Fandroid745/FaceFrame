@@ -1,130 +1,129 @@
 package com.example.collage.ui
 
 import android.graphics.Bitmap
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
-import com.example.collage.domain.model.VideoResult
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.collage.ui.screens.HomeScreen
+import com.example.collage.ui.screens.ProcessingScreen
+import com.example.collage.ui.screens.ResultScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollageScreen(
     viewModel: CollageViewModel,
+    navController: NavHostController,
     onShare: (Bitmap) -> Unit,
     onSave: (Bitmap) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination?.route
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { viewModel.processVideo(it) }
+    // Automatically navigate based on state changes
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is UiState.Processing -> {
+                if (currentDestination != "processing") {
+                    navController.navigate("processing") {
+                        popUpTo("home") { saveState = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+            is UiState.Success -> {
+                if (currentDestination != "result") {
+                    navController.navigate("result") {
+                        popUpTo("processing") { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+            is UiState.Idle -> {
+                if (currentDestination != "home") {
+                    navController.navigate("home") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            }
+            else -> {}
+        }
     }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(title = { Text("Collage Creator") })
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            when (val state = uiState) {
-                is UiState.Idle -> {
-                    Button(onClick = { launcher.launch("video/*") }) {
-                        Text("Select Video")
+            TopAppBar(title = { Text("Face Collage") })
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                    label = { Text("Home") },
+                    selected = currentDestination == "home",
+                    onClick = {
+                        navController.navigate("home") {
+                            popUpTo("home") { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                }
-                is UiState.Processing -> {
-                    CircularProgressIndicator(progress = { state.progress })
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(state.message)
-                    Text("${(state.progress * 100).toInt()}%")
-                }
-                is UiState.Success -> {
-                    CollageResult(
-                        result = state.result,
-                        collage = state.collage,
-                        onShare = { onShare(state.collage) },
-                        onSave = { onSave(state.collage) }
-                    )
-                }
-                is UiState.Error -> {
-                    Text("Error: ${state.message}", color = MaterialTheme.colorScheme.error)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { launcher.launch("video/*") }) {
-                        Text("Try Again")
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Settings, contentDescription = "Progress") },
+                    label = { Text("Progress") },
+                    selected = currentDestination == "processing",
+                    onClick = {
+                        navController.navigate("processing") {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Info, contentDescription = "Collage") },
+                    label = { Text("Collage") },
+                    selected = currentDestination == "result",
+                    onClick = {
+                        navController.navigate("result") {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
         }
-    }
-}
+    ) { innerPadding ->
 
-@Composable
-fun CollageResult(
-    result: VideoResult,
-    collage: Bitmap,
-    onShare: () -> Unit,
-    onSave: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            bitmap = collage.asImageBitmap(),
-            contentDescription = "Generated Collage",
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            contentScale = ContentScale.Fit
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(innerPadding)
         ) {
-            Button(onClick = onSave) { Text("Save to Gallery") }
-            Button(onClick = onShare) { Text("Share") }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Total People: ${result.people.size}", style = MaterialTheme.typography.headlineSmall)
-        Text("Total Appearances: ${result.totalAppearances}")
-
-        LazyColumn(modifier = Modifier.fillMaxWidth().height(200.dp)) {
-            items(result.people) { person ->
-                ListItem(
-                    headlineContent = { Text("Person ${person.id}") },
-                    supportingContent = { Text("${person.appearanceCount} appearances") },
-                    leadingContent = {
-                        Image(
-                            bitmap = person.representativeBitmap.asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
+            composable("home") {
+                HomeScreen(
+                    onVideoSelected = { viewModel.processVideo(it) },
+                    isIdle = uiState is UiState.Idle
+                )
+            }
+            composable("processing") {
+                ProcessingScreen(uiState)
+            }
+            composable("result") {
+                ResultScreen(
+                    uiState = uiState,
+                    onShare = onShare,
+                    onSave = onSave,
+                    onReset = { viewModel.reset() }
                 )
             }
         }

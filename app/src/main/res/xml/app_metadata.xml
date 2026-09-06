@@ -1,0 +1,7 @@
+<AppFunctionAppMetadata xmlns:appfn="http://schemas.android.com/apk/androidx.appfunctions"
+    appfn:description="This app processes portrait videos on-device, detects faces, identifies the same person across separate appearances, and creates a creative collage that can be saved and shared.
+    Operational Patterns:
+    - Trigger video processing to generate identity-grouped collages.
+    Constraints:
+    - Video processing is done entirely on-device for privacy."
+    appfn:displayDescription="@string/app_name" />
