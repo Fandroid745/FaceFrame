@@ -130,9 +130,19 @@ class CollageGenerator {
         canvas.save()
         canvas.clipPath(clipPath)
 
-        val bmp = person.representativeShot
-        val src = calculateCenterCropRect(bmp.width, bmp.height, rect.width().toInt(), rect.height().toInt())
-        canvas.drawBitmap(bmp, src, rect, Paint(Paint.FILTER_BITMAP_FLAG))
+        val bestDetection = person.bestDetection
+        val fullFrame = bestDetection.frameBitmap
+        val faceBox = bestDetection.boundingBox
+
+        val src = calculateFaceAwareCropRect(
+            frameW = fullFrame.width,
+            frameH = fullFrame.height,
+            faceBox = faceBox,
+            targetW = rect.width().toInt(),
+            targetH = rect.height().toInt()
+        )
+
+        canvas.drawBitmap(fullFrame, src, rect, Paint(Paint.FILTER_BITMAP_FLAG))
 
         canvas.restore()
 
@@ -145,20 +155,47 @@ class CollageGenerator {
         canvas.drawRoundRect(rect, cornerRadius, cornerRadius, borderPaint)
     }
 
-    private fun calculateCenterCropRect(srcW: Int, srcH: Int, dstW: Int, dstH: Int): Rect {
-        val srcRatio = srcW.toFloat() / srcH
-        val dstRatio = dstW.toFloat() / dstH
-        var cropW = srcW
-        var cropH = srcH
-        var cropX = 0
-        var cropY = 0
-        if (srcRatio > dstRatio) {
-            cropW = (srcH * dstRatio).toInt()
-            cropX = (srcW - cropW) / 2
-        } else {
-            cropH = (srcW / dstRatio).toInt()
-            cropY = ((srcH - cropH) * 0.35f).toInt() // Top-bias
+    /**
+     * Calculates a source crop rectangle from the full frame that is centered on the detected face
+     * and matches the aspect ratio of the destination tile.
+     */
+    private fun calculateFaceAwareCropRect(
+        frameW: Int,
+        frameH: Int,
+        faceBox: Rect,
+        targetW: Int,
+        targetH: Int
+    ): Rect {
+        val targetRatio = targetW.toFloat() / targetH
+
+        // Target a tight portrait shot: ~2.5x the height of the face box
+        val faceHeight = faceBox.height()
+        var cropH = (faceHeight * 2.5f).toInt()
+        var cropW = (cropH * targetRatio).toInt()
+
+        // If calculated crop exceeds frame dimensions, scale it down to fit
+        if (cropW > frameW) {
+            cropW = frameW
+            cropH = (cropW / targetRatio).toInt()
         }
-        return Rect(cropX, cropY, cropX + cropW, cropY + cropH)
+        if (cropH > frameH) {
+            cropH = frameH
+            cropW = (cropH * targetRatio).toInt()
+        }
+
+        // Center the crop on the face's center
+        val faceCenterX = faceBox.centerX()
+        val faceCenterY = faceBox.centerY()
+
+        var left = faceCenterX - (cropW / 2)
+        var top = faceCenterY - (cropH * 0.45f).toInt() // Slightly higher than center for better framing
+
+        // Ensure we don't go out of bounds
+        if (left < 0) left = 0
+        if (top < 0) top = 0
+        if (left + cropW > frameW) left = frameW - cropW
+        if (top + cropH > frameH) top = frameH - cropH
+
+        return Rect(left, top, left + cropW, top + cropH)
     }
 }

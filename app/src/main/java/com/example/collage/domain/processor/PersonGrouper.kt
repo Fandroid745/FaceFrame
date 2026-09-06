@@ -89,11 +89,11 @@ class PersonGrouper {
                 .maxByOrNull { it.qualityScore }
                 ?: cluster.appearances.first().bestDetection
 
-            // Generous face crop per original Collage style (expands 2.4x)
+            // Tight face crop for best isolation (expands 1.7x)
             val representativeShot = ImageUtils.cropGenerousFace(
                 source = bestDetection.frameBitmap,
                 boundingBox = bestDetection.boundingBox,
-                expansionFactor = 2.4f,
+                expansionFactor = 1.7f,
                 targetAspectRatio = 0.8f
             )
 
