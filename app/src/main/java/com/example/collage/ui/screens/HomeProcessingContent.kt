@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import com.example.collage.ui.UiState
 
 @Composable
-fun ProcessingScreen(
+fun HomeProcessingContent(
     uiState: UiState,
     modifier: Modifier = Modifier
 ) {

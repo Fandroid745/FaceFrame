@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun HomeScreen(
+fun HomePickerContent(
     onVideoSelected: (Uri) -> Unit,
     isIdle: Boolean,
     modifier: Modifier = Modifier
@@ -33,9 +33,6 @@ fun HomeScreen(
             Button(onClick = { launcher.launch("video/*") }) {
                 Text("Pick Video")
             }
-        } else {
-            Text("Video is already being processed.", style = MaterialTheme.typography.bodyLarge)
-            Text("Check the 'Processing' or 'Result' tab.")
         }
     }
 }
