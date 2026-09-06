@@ -80,4 +80,10 @@ dependencies {
     implementation(libs.androidx.appfunctions)
     implementation(libs.androidx.appfunctions.service)
     ksp(libs.androidx.appfunctions.compiler)
+
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    implementation(libs.coil.compose)
 }

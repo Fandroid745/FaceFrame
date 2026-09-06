@@ -16,8 +16,10 @@ coroutinesPlayServices = "1.9.0"
 navigationCompose = "2.8.5"
 ktlint = "12.1.0"
 appfunctions = "1.0.0-alpha09"
-ksp = "2.0.21-1.0.27"
+ksp = "2.0.21-1.0.25"
 koin = "4.0.0"
+room = "2.7.0-alpha11"
+coil = "2.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,6 +47,10 @@ koin-compose = { group = "io.insert-koin", name = "koin-androidx-compose", versi
 androidx-appfunctions = { group = "androidx.appfunctions", name = "appfunctions", version.ref = "appfunctions" }
 androidx-appfunctions-service = { group = "androidx.appfunctions", name = "appfunctions-service", version.ref = "appfunctions" }
 androidx-appfunctions-compiler = { group = "androidx.appfunctions", name = "appfunctions-compiler", version.ref = "appfunctions" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
