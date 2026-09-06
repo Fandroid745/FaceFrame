@@ -22,6 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Collage"
+rootProject.name = "FaceFrame"
 include(":app")
- 

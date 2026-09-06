@@ -1,3 +1,31 @@
 <resources>
-    <string name="app_name">Collage</string>
+    <string name="app_name">FaceFrame</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_history">History</string>
+    <string name="nav_progress">Progress</string>
+    <string name="nav_collage">Collage</string>
+    <string name="title_new_collage">FaceFrame</string>
+    <string name="title_history">History</string>
+    <string name="title_saved_collage">Saved Collage</string>
+    <string name="home_pick_video_btn">Choose Video</string>
+    <string name="home_recent_collage">Recent Collage</string>
+    <string name="dialog_cancel_title">Analysis in Progress</string>
+    <string name="dialog_cancel_message">A video is currently being analyzed. Are you sure you want to cancel the current process?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="processing_label">Processing…</string>
+    <string name="processing_analyzing">Analyzing video frames…</string>
+    <string name="processing_grouping">Grouping identical faces…</string>
+    <string name="processing_rendering">Rendering final collage…</string>
+    <string name="result_title">Analysis Results</string>
+    <string name="result_stats">%1$d unique people identified • %2$d appearances</string>
+    <string name="person_label">Person %1$d</string>
+    <string name="result_save">Save</string>
+    <string name="result_share">Share</string>
+    <string name="result_reset">Process Another Video</string>
+    <string name="history_empty">No history yet. Process a video to see it here.</string>
+    <string name="history_item_people">People: %1$d</string>
+    <string name="history_item_duration">Duration: %1$s</string>
+    <string name="error_loading_history">Error loading history: %1$s</string>
+    <string name="error_no_result">No result yet. Process a video to see your collage.</string>
 </resources>
