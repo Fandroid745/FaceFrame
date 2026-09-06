@@ -4,9 +4,9 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.collage.data.VideoRepository
 import com.example.collage.data.local.entity.VideoRecord
-import com.example.collage.data.repository.VideoRepository
-import com.example.collage.domain.*
+import com.example.collage.domain.processor.*
 import com.example.collage.domain.model.VideoAnalysisResult
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

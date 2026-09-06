@@ -1,4 +1,4 @@
-package com.example.collage.ui.screens
+package com.example.collage.ui.components
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image

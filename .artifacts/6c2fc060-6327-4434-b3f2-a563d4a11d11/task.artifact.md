@@ -1,0 +1,6 @@
+- [x] Create `domain/processor` package
+- [x] Move AI and processing logic to `domain/processor`
+- [x] Update package declarations in moved files
+- [x] Update imports in `AppModule.kt`, `CollageViewModel.kt`, and `MainScreen.kt`
+- [x] Delete redundant domain models (`DetectedFace`, `FaceAnalysisResult`)
+- [x] Verify build success

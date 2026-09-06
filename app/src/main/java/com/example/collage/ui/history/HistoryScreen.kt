@@ -1,4 +1,4 @@
-package com.example.collage.ui.screens
+package com.example.collage.ui.history
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

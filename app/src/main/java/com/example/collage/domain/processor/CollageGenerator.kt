@@ -1,4 +1,4 @@
-package com.example.collage.domain
+package com.example.collage.domain.processor
 
 import android.graphics.*
 import com.example.collage.domain.model.PersonProfile

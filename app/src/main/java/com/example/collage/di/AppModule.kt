@@ -1,6 +1,6 @@
 package com.example.collage.di
 
-import com.example.collage.domain.*
+import com.example.collage.domain.processor.*
 import com.example.collage.ui.CollageViewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.module.dsl.singleOf

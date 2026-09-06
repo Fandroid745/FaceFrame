@@ -2,7 +2,7 @@ package com.example.collage.di
 
 import androidx.room.Room
 import com.example.collage.data.local.AppDatabase
-import com.example.collage.data.repository.VideoRepository
+import com.example.collage.data.VideoRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module

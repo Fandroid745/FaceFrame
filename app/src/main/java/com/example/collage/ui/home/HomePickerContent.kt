@@ -1,4 +1,4 @@
-package com.example.collage.ui.screens
+package com.example.collage.ui.home
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult

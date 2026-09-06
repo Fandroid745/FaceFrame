@@ -1,4 +1,4 @@
-package com.example.collage.data.repository
+package com.example.collage.data
 
 import android.content.Context
 import com.example.collage.data.local.daos.VideoDao

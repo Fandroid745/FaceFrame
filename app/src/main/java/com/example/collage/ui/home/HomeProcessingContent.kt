@@ -1,4 +1,4 @@
-package com.example.collage.ui.screens
+package com.example.collage.ui.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

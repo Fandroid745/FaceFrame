@@ -1,4 +1,4 @@
-package com.example.collage.domain
+package com.example.collage.domain.processor
 
 import com.example.collage.domain.model.AppearanceSegment
 import com.example.collage.domain.model.FaceDetectionResult

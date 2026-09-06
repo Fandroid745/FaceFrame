@@ -1,15 +1,13 @@
-package com.example.collage.domain
+package com.example.collage.domain.processor
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import com.example.collage.domain.model.VideoAnalysisResult
-import com.example.collage.util.ImageUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlin.math.max
 
 private const val FRAME_INTERVAL_MS = 200L
 

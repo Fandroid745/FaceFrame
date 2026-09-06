@@ -13,10 +13,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.collage.ui.screens.CollageDetailContent
-import com.example.collage.ui.screens.HistoryScreen
-import com.example.collage.ui.screens.HomePickerContent
-import com.example.collage.ui.screens.HomeProcessingContent
+import com.example.collage.ui.components.CollageDetailContent
+import com.example.collage.ui.history.HistoryScreen
+import com.example.collage.ui.home.HomePickerContent
+import com.example.collage.ui.home.HomeProcessingContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
