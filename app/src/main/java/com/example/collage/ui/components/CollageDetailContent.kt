@@ -14,8 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.example.collage.R
 import com.example.collage.ui.UiState
 import java.io.File
 
@@ -37,7 +39,7 @@ fun CollageDetailContent(
                 personsList = {
                     items(res.persons) { person ->
                         PersonListItem(
-                            label = "Person ${person.personId}",
+                            label = stringResource(R.string.person_label, person.personId),
                             appearanceCount = person.appearanceCount,
                             thumbnail = {
                                 Image(
@@ -61,7 +63,7 @@ fun CollageDetailContent(
                 personsList = {
                     items(uiState.persons) { person ->
                         PersonListItem(
-                            label = "Person ${person.personId}",
+                            label = stringResource(R.string.person_label, person.personId),
                             appearanceCount = person.appearanceCount,
                             thumbnail = {
                                 Image(
@@ -81,7 +83,7 @@ fun CollageDetailContent(
 
     if (stateData == null) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No result available.")
+            Text(stringResource(R.string.error_no_result))
         }
         return
     }
@@ -100,7 +102,7 @@ fun CollageDetailContent(
             ) {
                 Image(
                     bitmap = stateData.collage.asImageBitmap(),
-                    contentDescription = "Generated Collage",
+                    contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -113,10 +115,10 @@ fun CollageDetailContent(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Button(onClick = { onSave(stateData.collage) }, modifier = Modifier.weight(1f)) {
-                    Text("Save")
+                    Text(stringResource(R.string.result_save))
                 }
                 Button(onClick = { onShare(stateData.collage) }, modifier = Modifier.weight(1f)) {
-                    Text("Share")
+                    Text(stringResource(R.string.result_share))
                 }
             }
         }
@@ -127,15 +129,15 @@ fun CollageDetailContent(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Process Another Video")
+                Text(stringResource(R.string.result_reset))
             }
         }
 
         item {
             Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
-                Text(text = "Analysis Results", style = MaterialTheme.typography.titleLarge)
+                Text(text = stringResource(R.string.result_title), style = MaterialTheme.typography.titleLarge)
                 Text(
-                    text = "${stateData.personCount} unique people identified • ${stateData.totalAppearances} appearances",
+                    text = stringResource(R.string.result_stats, stateData.personCount, stateData.totalAppearances),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )

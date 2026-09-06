@@ -8,6 +8,7 @@ import com.example.collage.data.VideoRepository
 import com.example.collage.data.local.entity.VideoRecord
 import com.example.collage.domain.processor.*
 import com.example.collage.domain.model.VideoAnalysisResult
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -28,6 +29,8 @@ class CollageViewModel(
     private val repository: VideoRepository
 ) : ViewModel() {
 
+    private var processingJob: Job? = null
+
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
@@ -35,7 +38,8 @@ class CollageViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun processVideo(videoUri: Uri) {
-        viewModelScope.launch {
+        cancelProcessing()
+        processingJob = viewModelScope.launch {
             videoProcessor.processVideo(videoUri).collect { state ->
                 when (state) {
                     is ProcessingState.ExtractingFrames -> {
@@ -59,8 +63,14 @@ class CollageViewModel(
         }
     }
 
-    fun reset() {
+    fun cancelProcessing() {
+        processingJob?.cancel()
+        processingJob = null
         _uiState.value = UiState.Idle
+    }
+
+    fun reset() {
+        cancelProcessing()
     }
 
     fun loadHistoryDetail(video: VideoRecord) {
